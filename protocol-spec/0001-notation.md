@@ -29,7 +29,7 @@ the middle-right mino; for west, the middle-bottom mino.
 # Position Notation
 When the server gives a `position`, it will be written as follows:
 ```
-position <BOARD> hold <HOLD> next <NEXT> : BOARD HOLD NEXT  
+position <BOARD> hold <HOLD> next <NEXT> incoming <GARBAGE> b2b <B2B> combo <COMBO> : (Same for the opponent)
 ```
 
 The leftmost position will be the bot's, and the right one will be its opponent's.
@@ -39,7 +39,16 @@ This is based on the [Forsyth-Edwards Notation](https://en.wikipedia.org/wiki/Fo
 
 Each rank is described, starting top to bottom, with a "/" between each one (without spacing); within each rank, the contents of the squares are described in order from the left to the right. Each square is identified by a single letter (G for garbage). A set of one or more consecutive empty squares within a rank is denoted by a digit from `1` to `.`, corresponding to the number of empty squares (`.` is 10, an empty rank).
 
+## Garbage notation
+The garbage will be written as a list of numbers, the size of the numbers giving the amount of aligned clean garbage per garbage pile.
+
+### Examples:
+- `incoming 1 1 1 1`: 4 lines of cheese
+- `incoming 4 2 1 1`: 4 clean, 2 clean and 2 cheese
+
 ## Examples:
-- Empty board: `./././././././././././././././././././. next I J S T L Z` 
-- Board after I drop:<br> `./././././././././././././././././././3IIII3 next J S T L Z O`
-- Board after holding J and placing S: <br>`./././././././././././././././././5SS3/4SS4/3IIII3 hold J next S T L Z O S`
+- Empty board: `././././././././././././././././././././ next I J S T L Z` 
+- Empty board receiving garbage: `././././././././././././././././././././ next I J S T L Z incoming 4 1 1 1 2`
+- Board after I drop:<br> `./././././././././././././././././././3IIII3/ next J S T L Z O`
+- Board after holding J and placing S: <br>`./././././././././././././././././5SS3/4SS4/3IIII3/ hold J next S T L Z O S`
+- Empty board after tetris PC: `././././././././././././././././././././ next I J S T L Z b2b 1 combo 2`
