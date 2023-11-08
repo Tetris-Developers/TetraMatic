@@ -6,7 +6,8 @@ PIECE_TYPE_TO_NUMBER = {
     "S": 4,
     "T": 5,
     "Z": 6,
-    "I": 7
+    "I": 7,
+    "G": 8
 }
 
 NUMBER_TO_PIECE_TYPE = {
@@ -16,7 +17,8 @@ NUMBER_TO_PIECE_TYPE = {
     4: "S",
     5: "T",
     6: "Z",
-    7: "I"
+    7: "I",
+    8: "G"
 }
 
 ROTATION_STR_TO_INT = {

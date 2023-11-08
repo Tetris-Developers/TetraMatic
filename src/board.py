@@ -1,4 +1,5 @@
 import re
+import random
 
 from src.consts import *
 
@@ -131,14 +132,59 @@ class Board:
         if self._b2b:
             result += f" b2b {self._b2b}"
         if self._combo:
-            result += f" combos {self._combo}"
+            result += f" combo {self._combo}"
 
         return result
 
     def generate_all_legal_moves(self):
         pass
 
-    def clear_lines(self, dont_cancel_b2b = False):
+    def fill_queue(self, num_pieces=6):
+        while len(self._next) < num_pieces:
+            # TODO: 7-bag
+            self._next.append(random.randint(1, 7))
+
+    def add_garbage(self):
+        total_added = 0
+        new_garbage_queue = []
+        
+        for i, num in enumerate(self._incoming):
+            hole = random.randint(0, 9)
+            
+            if any(self._board[0][x] != 0 for x in range(10)):
+                self.has_lost = True
+                return
+            
+            total_added += num
+
+            if total_added > 8:
+                num -= total_added - 8
+                new_garbage_queue = [total_added - 8] + self._incoming[i+1:]
+                
+            for _ in range(num):
+                self._board.pop(0)
+                self._board.append([(8 if x != hole else 0) for x in range(10)])
+
+            if total_added > 8:
+                break
+            
+        self._incoming = new_garbage_queue
+                
+    def change_next_from_move(self, move) -> bool:
+        if move._type == self._next[0]:
+            self._next.pop(0)
+            self.fill_queue()
+            return True
+
+        elif move._type == self._hold:
+            self._hold = self._next[0]
+            self._next.pop(0)
+            self.fill_queue()
+            return True
+    
+        return False
+
+    def clear_lines(self, dont_cancel_b2b = False) -> int:
 
         cleared = 0
         for y in range(20):
@@ -150,18 +196,20 @@ class Board:
                 self._board[i] = self._board[i-1]
             self._board[0] = [0] * 10
 
+        if cleared == 0:
+            self._combo = 0
+        else:
             self._combo += 1
 
-            if cleared == 4:
-                self._b2b += 1
+        if cleared == 4:
+            self._b2b += 1
+    
+        elif not dont_cancel_b2b and cleared > 0:
+            self._b2b = 0
         
-            elif not dont_cancel_b2b and cleared > 0:
-                self._b2b = 0
-            
-            elif cleared == 0:
-                self._combo = 0
+        return cleared
 
-    def push(self, move) -> bool:
+    def push(self, move, ignore_next = False) -> bool:
         """
         Pushes a move onto the board. Returns False if the move cannot be played
         """
@@ -193,6 +241,11 @@ class Board:
             x, y = mino
             self._board[Y + y][X + x] = move._type
         
+        if not ignore_next:
+            self.change_next_from_move(move)
+
+        self.clear_lines()
+
         return True
 
 class Move:

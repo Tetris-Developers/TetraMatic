@@ -1,4 +1,5 @@
 import pytest
+import re
 
 from src.board import Board, Move
 
@@ -55,13 +56,13 @@ def test_board_with_next_and_hold_and_b2b_values(board_with_next_and_hold_and_b2
     assert board_with_next_and_hold_and_b2b._hold == 1
 
 def test_board_with_next_and_hold_and_combo_values(board_with_next_and_hold_and_combo):
-    assert str(board_with_next_and_hold_and_combo) == "././././././././././././././././5SS3/4SS4/3IIII3/ hold J next S T L Z O S combos 3"
+    assert str(board_with_next_and_hold_and_combo) == "././././././././././././././././5SS3/4SS4/3IIII3/ hold J next S T L Z O S combo 3"
     assert board_with_next_and_hold_and_combo._combo == 3
     assert board_with_next_and_hold_and_combo._next == [4, 5, 2, 6, 3, 4]
     assert board_with_next_and_hold_and_combo._hold == 1
 
 def test_board_with_everything_values(board_with_everything):
-    assert str(board_with_everything) == "././././././././././././././././5SS3/4SS4/3IIII3/ hold J next S T L Z O S incoming 3 1 1 b2b 2 combos 3"
+    assert str(board_with_everything) == "././././././././././././././././5SS3/4SS4/3IIII3/ hold J next S T L Z O S incoming 3 1 1 b2b 2 combo 3"
     assert board_with_everything._incoming == [3, 1, 1]
     assert board_with_everything._b2b == 2
     assert board_with_everything._combo == 3
@@ -95,7 +96,7 @@ def test_to_string(move):
 def test_push_valid_move_1():
     board = Board()
     move = Move(1, (3, 19), 0, 0)
-    assert board.push(move) == True
+    assert board.push(move, ignore_next=True) == True
     assert board._board == ([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0] for _ in range(18)]
                             + [[0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
                                 [0, 0, 1, 1, 1, 0, 0, 0, 0, 0]])
@@ -111,15 +112,22 @@ def test_push_valid_move_2():
     board = Board.from_string("./././././././././././././././././././3IIII3/ hold J next I T L Z O S")
 
     assert board.push(move) == True
-    assert str(board) == "././././././././././././././././././2IIII4/3IIII3/ hold J next I T L Z O S"
+    assert board._board == ([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0] for _ in range(17)]
+                            + [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                [0, 0, 7, 7, 7, 7, 0, 0, 0, 0],
+                                [0, 0, 0, 7, 7, 7, 7, 0, 0, 0]])
+    assert board._hold == 1
+    assert len(board._next) == 6
+    assert board._next[0] == 5
 
-"""def test_push_from_hold():
-    move = Move(1, (3, 19), 2, 0)
+def test_push_from_hold():
+    move = Move(1, (6, 18), 2, 0)
     board = Board.from_string("./././././././././././././././././././3IIII3/ hold J next I T L Z O S")
 
     assert board.push(move) == True
-    assert str(board) == "././././././././././././././././././5JJJ2/3IIIIJ2/ hold I next T L Z O S"
-"""
+    assert board._hold == 7
+    assert len(board._next) == 6
+
 def test_push_invalid_move_falling():
     move = Move(7, (3, 3), 0, 0)
     board = Board.from_string("././././././././././././././././././3IIII3/ hold J next I T L Z O S")
@@ -140,3 +148,51 @@ def test_push_invalid_move_colliding():
 
     assert board.push(move) == False
     assert str(board) == "./././././././././././././././././././3IIII3/ hold J next I T L Z O S"
+
+def test_clear_lines_empty_board():
+    board = Board.from_string("./././././././././././././././././././3IIII3/ hold J next I T L Z O S")
+    assert board.clear_lines() == 0
+    assert str(board) == "./././././././././././././././././././3IIII3/ hold J next I T L Z O S"
+
+def test_clear_lines_single_line():
+    board = Board.from_string("./././././././././././././././././././IIIIIIIIIII/ hold J next I T L Z O S")
+    assert board.clear_lines() == 1
+    assert str(board) == "././././././././././././././././././././ hold J next I T L Z O S combo 1"
+
+def test_clear_lines_multiple_lines():
+    board = Board.from_string("./././././IIIIIIIIII/././././././././././././JJJJJJJJJJ/3IIII3/ hold J next I T L Z O S")
+    assert board.clear_lines() == 2
+    assert str(board) == "./././././././././././././././././././3IIII3/ hold J next I T L Z O S combo 1"
+
+def test_add_garbage_no_loss():
+    # Test case where no loss occurs
+    board = Board()
+    board._incoming = [1, 2, 1]
+    board.add_garbage()
+
+    for i in range(16, 20):
+        assert sum(board._board[i]) == 8 * 9
+        
+def test_add_garbage_loss():
+    # Test case where loss occurs
+    board = Board()
+    board._incoming = [3, 2, 1]
+    board._board = [[8] * 10 for _ in range(18)] + [[0] * 10] * 2
+    board.add_garbage()
+
+    assert board.has_lost
+    
+def test_add_garbage_capped():
+    # Test case where added garbage is more than 8
+    board = Board()
+    board._incoming = [6, 8, 3, 2]
+    board._board = [[0] * 10 for _ in range(20)]
+    board.add_garbage()
+
+    for i in range(12):
+        assert sum(board._board[i]) == 0
+    
+    for i in range(12, 20):
+        assert sum(board._board[i]) == 8 * 9
+
+    assert board._incoming == [6, 3, 2]
