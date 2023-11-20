@@ -1,0 +1,17 @@
+---
+rules:
+  first-to: 7
+  pps: 3
+  randomizer: uniform
+  startingpos: empty
+  rotations: srs+
+  illegal-penalty: 0
+  max-illegal-count: 3
+  illegal_delay: 5
+  oncrash: bugfix
+auth-required: false
+auth-valid-keys:
+  - xxx
+  - xxx
+  - xxx
+...

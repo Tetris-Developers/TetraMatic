@@ -1,3 +1,8 @@
+from yaml import safe_load
+from os.path import join, dirname
+
+CONFIG = safe_load(open(join(dirname(__file__), "../config.yaml")))
+
 PIECE_TYPE_TO_NUMBER = {
     None: None,
     "J": 1,
