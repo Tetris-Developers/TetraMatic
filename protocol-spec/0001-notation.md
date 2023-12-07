@@ -43,12 +43,12 @@ Each rank is described, starting top to bottom, with a "/" between each one (wit
 The garbage will be written as a list of numbers, the size of the numbers giving the amount of aligned clean garbage per garbage pile.
 
 ### Examples:
-- `incoming 1 1 1 1`: 4 lines of cheese
-- `incoming 4 2 1 1`: 4 clean, 2 clean and 2 cheese
+- `incoming 1,1,1,1`: 4 lines of cheese
+- `incoming 4,2,1,1`: 4 clean, 2 clean then 2 cheese
 
 ## Examples:
-- Empty board: `././././././././././././././././././././ next I J S T L Z` 
-- Empty board receiving garbage: `././././././././././././././././././././ next I J S T L Z incoming 4 1 1 1 2`
-- Board after I drop:<br> `./././././././././././././././././././3IIII3/ next J S T L Z O`
-- Board after holding J and placing S: <br>`./././././././././././././././././5SS3/4SS4/3IIII3/ hold J next S T L Z O S`
-- Empty board after tetris PC: `././././././././././././././././././././ next I J S T L Z b2b 1 combo 2`
+- Empty board: `././././././././././././././././././././ next IJSTLZ` 
+- Empty board receiving garbage: `././././././././././././././././././././ next IJSTLZ incoming 4,1,1,1,2`
+- Board after I drop:<br> `./././././././././././././././././././3IIII3/ next JSTLZO`
+- Board after holding J and placing S: <br>`./././././././././././././././././5SS3/4SS4/3IIII3/ hold J next STLZOS`
+- Empty board after tetris PC: `././././././././././././././././././././ next IJSTLZ b2b 1 combo 2`
