@@ -37,12 +37,13 @@ The typical lifecycle of a TBP bot is this.
 [ROUND ENDS]
 
     [SERVER]: stop
-    [SERVER]: start position ... 
+    [SERVER]: start position ...
 
 [GAME ENDS]
 
     [SERVER]: quit
 ```
+
 **NOTE**: The text in brackets should be ignored when implementing.
 
 More specs and documentation about each command and notation will be provided.

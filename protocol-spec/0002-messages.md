@@ -1,9 +1,11 @@
 # Messages (Server -> Bot)
 
 ### `rules`
+
 Will be specified in 0003
 
 ### `isready`
+
 Is meant for the server to wait for the bots. Bots should respond with `readok` when ready. The game will not start unless both bots are ready
 
 ### `start`
@@ -28,12 +30,12 @@ suggested moves.
 
 See [Move Notation](0001-notation.md). The bot can also provide additionnal information:
 
-Attribute | Description
---------- | ----
-`nodes`   | Total number of nodes of current game tree.
-`nps`     | Number of nodes created per second.
-`depth`   | The depth of current game tree.
-`extra`   | Additional informational string about the provided move.
+| Attribute | Description                                              |
+| --------- | -------------------------------------------------------- |
+| `nodes`   | Total number of nodes of current game tree.              |
+| `nps`     | Number of nodes created per second.                      |
+| `depth`   | The depth of current game tree.                          |
+| `extra`   | Additional informational string about the provided move. |
 
 Since bots may have different implementations of a game tree, it is not enforced for bots to provide all the values.
 Also, it is up to bot developers how to count these values.
@@ -51,12 +53,13 @@ The `newpiece` message informs the bot that a new piece has been added to the **
 newpiece PIECE position POSITION
 ```
 
-Attribute | Description
---------- | -----------
-`PIECE`   | A piece. Example: `"T"`
-`POSITION`   | See [Position Notation](0001-notation.md)
+| Attribute  | Description                               |
+| ---------- | ----------------------------------------- |
+| `PIECE`    | A piece. Example: `"T"`                   |
+| `POSITION` | See [Position Notation](0001-notation.md) |
 
 ### `illegal`
+
 Is sent when the `bestmove` command gives an illegal move. Depending on the rules, the bot can be allowed a delay to play another move, a time penalty or a round forfeit.
 
 ```
@@ -85,12 +88,12 @@ advertise to the frontend what TBP features it supports. Once the frontend
 receives this message, it can inform the bot of the game rules using the `rules`
 message.
 
-Attribute  | Description
----------  | -----------
-`name`     | A string, the human-friendly name of the bot. Example: `"Cold Clear"`
-`version`  | A string version identifier. Example: `"Gen 14 proto 8"`
-`author`   | A string identifying the author of the bot. Example: `"SoRA_X7"`
-`features` | A list of supported features.
+| Attribute  | Description                                                           |
+| ---------- | --------------------------------------------------------------------- |
+| `name`     | A string, the human-friendly name of the bot. Example: `"Cold Clear"` |
+| `version`  | A string version identifier. Example: `"Gen 14 proto 8"`              |
+| `author`   | A string identifying the author of the bot. Example: `"SoRA_X7"`      |
+| `features` | A list of supported features.                                         |
 
 ### `suggestion`
 
@@ -99,11 +102,12 @@ the frontend of what moves the bot wishes to make in order of preference. The
 frontend should play the most preferred valid move. Whether
 a hold should be performed is inferred from the type of piece to be placed. This message is essentially made for analysis and does not have to be legal.
 
-Attribute | Description
---------- | -----------
-`moves`   | A list of moves in order of preference.
+| Attribute | Description                             |
+| --------- | --------------------------------------- |
+| `moves`   | A list of moves in order of preference. |
 
 A move is an object with the following attributes:
 
 ### `bestmove`
+
 The `bestmove` command gives the server the move that the bot wants to play.

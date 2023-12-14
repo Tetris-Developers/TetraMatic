@@ -1,20 +1,41 @@
 import { Elysia, t } from "elysia";
+import Player from "./player";
+import { ElysiaWS } from "elysia/dist/ws";
 
-const app = new Elysia()
+function createClient() {
+    let thisPlayer: Player;
+	function open(ws: ElysiaWS<any, any, any>) {
+        console.log("[SERVER] New client connected");
+        thisPlayer = new Player(ws);
+	}
 
-app.ws("/bot", {
-    body: t.String(),
+	function message(_: ElysiaWS<any, any, any>, msg: string) {
+        thisPlayer.command(msg);
+	}
 
-    open(ws) {
-        console.log("open")
-    },
-    message(ws, msg) {
-        console.log(msg)
-    },
-    close(ws) {
-        console.log("close")
+	function close(_: ElysiaWS<any, any, any>) {
+        console.log("[SERVER] Client disconnected");
+	}
 
-    },
-})
+	return {
+		body: t.String(),
+		open,
+		message,
+		close
+	};
+}
 
-app.listen(Bun.env.PORT || 3000)
+export function main() {
+	const app = new Elysia();
+
+	app.ws("/bot", createClient());
+
+	return new Promise(resolve => {
+		app.listen(Bun.env.PORT || 3000, () => {
+			console.log("[INFO] Server running");
+			resolve(app);
+		});
+	});
+}
+
+await main();

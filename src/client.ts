@@ -1,14 +1,14 @@
-import { ServerWebSocket } from "bun"
-import { ElysiaWS } from "elysia/dist/ws"
+import { ServerWebSocket } from "bun";
+import { ElysiaWS } from "elysia/dist/ws";
 
 export function open(ws: ElysiaWS<any>) {
-    console.log("open")
+	console.log("open");
 }
 
 export function message(ws: ElysiaWS<any>, msg: string) {
-    console.log(msg)
+	console.log(msg);
 }
 
 export function close(ws: ElysiaWS<any>) {
-    console.log("close")
+	console.log("close");
 }
