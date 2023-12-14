@@ -1,0 +1,15 @@
+{
+	"rules": {
+		"firstTo": 7,
+		"pps": 3,
+		"randomizer": "uniform",
+		"startingPos": "empty",
+		"rotations": "srs+",
+		"illegalPenalty": 0,
+		"maxIllegalCount": 3,
+		"illegalDelay": 5,
+		"onCrash": "bugfix"
+	},
+	"authRequired": false,
+	"authValidKeys": ["xxx", "xxx", "xxx"]
+}

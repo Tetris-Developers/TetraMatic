@@ -3,18 +3,18 @@ import Player from "./player";
 import { ElysiaWS } from "elysia/dist/ws";
 
 function createClient() {
-    let thisPlayer: Player;
+	let thisPlayer: Player;
 	function open(ws: ElysiaWS<any, any, any>) {
-        console.log("[SERVER] New client connected");
-        thisPlayer = new Player(ws);
+		console.log("[SERVER] New client connected");
+		thisPlayer = new Player(ws);
 	}
 
 	function message(_: ElysiaWS<any, any, any>, msg: string) {
-        thisPlayer.command(msg);
+		thisPlayer.command(msg);
 	}
 
 	function close(_: ElysiaWS<any, any, any>) {
-        console.log("[SERVER] Client disconnected");
+		console.log("[SERVER] Client disconnected");
 	}
 
 	return {

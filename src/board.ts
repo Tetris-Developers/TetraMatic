@@ -269,7 +269,7 @@ export class Board {
 		return result;
 	}
 
-	push(move: Move, ignoreNext: boolean): boolean {
+	push(move: Move, ignoreNext: boolean = false): boolean {
 		const matrix: number[][] = pieceMatrices[move.type - 1][move.rotation];
 
 		const { x, y } = move.coords;
