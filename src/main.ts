@@ -1,41 +1,43 @@
-import { Elysia, t } from "elysia";
+import express from "express";
+import expressWs from "express-ws";
+import { v4 as uuid } from "uuid";
+
 import Player from "./player";
-import { ElysiaWS } from "elysia/dist/ws";
+import Game from "./game";
 
-function createClient() {
-	let thisPlayer: Player;
-	function open(ws: ElysiaWS<any, any, any>) {
-		console.log("[SERVER] New client connected");
-		thisPlayer = new Player(ws);
+const game = new Game();
+const debugMode = process.argv.includes("--debug");
+
+const { app } = expressWs(express());
+
+app.ws("/bot", (ws: WebSocket, _) => {
+	let player = new Player(ws, uuid());
+	game.addPlayer(player);
+
+	console.log("[SERVER] New client connected");
+
+	if (debugMode) {
+		console.log("[DEBUG] Players: " + game.playersCount);
 	}
 
-	function message(_: ElysiaWS<any, any, any>, msg: string) {
-		thisPlayer.command(msg);
-	}
+	ws.addEventListener("message", message => {
+		if (debugMode) {
+			console.log(
+				`[DEBUG] Message from: ${player.id.split("-")[0]
+				}: ${message.data.toString()}`
+			);
+		}
 
-	function close(_: ElysiaWS<any, any, any>) {
-		console.log("[SERVER] Client disconnected");
-	}
-
-	return {
-		body: t.String(),
-		open,
-		message,
-		close
-	};
-}
-
-export function main() {
-	const app = new Elysia();
-
-	app.ws("/bot", createClient());
-
-	return new Promise(resolve => {
-		app.listen(Bun.env.PORT || 3000, () => {
-			console.log("[INFO] Server running");
-			resolve(app);
-		});
+		player.command(message.data.toString());
 	});
-}
 
-await main();
+	ws.addEventListener("close", () => {
+		game.removePlayer(player);
+
+		if (debugMode) {
+			console.log("[DEBUG] Players: " + game.playersCount);
+		}
+	});
+});
+
+app.listen(3000);
