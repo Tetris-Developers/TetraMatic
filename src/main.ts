@@ -5,6 +5,8 @@ import { v4 as uuid } from "uuid";
 import Player from "./player";
 import Game from "./game";
 
+import * as console from "./logging";
+
 const game = new Game();
 const debugMode = process.argv.includes("--debug");
 
@@ -12,18 +14,18 @@ const { app } = expressWs(express());
 
 app.ws("/bot", (ws: WebSocket, _) => {
 	let player = new Player(ws, uuid());
+
+	console.server(`${player.id.split("-")[0]} connected`);
+
 	game.addPlayer(player);
 
-	console.log("[SERVER] New client connected");
-
 	if (debugMode) {
-		console.log("[DEBUG] Players: " + game.playersCount);
+		console.debug("Players: " + game.playersCount);
 	}
 
 	ws.addEventListener("message", message => {
 		if (debugMode) {
-			console.log(
-				`[DEBUG] Message from: ${player.id.split("-")[0]
+			console.debug(`Message from: ${player.id.split("-")[0]
 				}: ${message.data.toString()}`
 			);
 		}
@@ -32,10 +34,11 @@ app.ws("/bot", (ws: WebSocket, _) => {
 	});
 
 	ws.addEventListener("close", () => {
+		console.server(`${player.id.split("-")[0]} disconnected`);
 		game.removePlayer(player);
 
 		if (debugMode) {
-			console.log("[DEBUG] Players: " + game.playersCount);
+			console.debug("Players: " + game.playersCount);
 		}
 	});
 });

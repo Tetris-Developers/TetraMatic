@@ -1,4 +1,5 @@
 import Player from "./player";
+import * as console from "./logging";
 
 export default class Game {
 	private players: Player[] = [];
@@ -20,7 +21,7 @@ export default class Game {
 			return;
 		}
 
-		console.log("[GAME] Starting game");
+		console.game("Starting game");
 
 		this.startGame();
 	}
@@ -36,7 +37,7 @@ export default class Game {
 			await new Promise(resolve => setTimeout(resolve, 100));
 		}
 
-		console.log("[GAME] Players are ready");
+		console.game("Players are ready");
 	}
 
 	async startGame() {
@@ -44,9 +45,8 @@ export default class Game {
 
 		this.players.forEach((player, index) => {
 			player.getFullPosition = () => {
-				return `${player.position} : ${
-					this.players[1 - index].position
-				}`;
+				return `${player.position} : ${this.players[1 - index].position
+					}`;
 			};
 		});
 	}
@@ -69,6 +69,12 @@ export default class Game {
 		while (!interrupt) {
 			await new Promise(resolve => setTimeout(resolve, 100));
 		}
+
+		this.players.forEach(player => {
+			player.onMove = () => { };
+		})
+
+		console.game("Round ended");
 	}
 
 	broadcast(msg: string) {
