@@ -81,7 +81,6 @@ test("Push Valid Move 1", () => {
 			])
 	);
 	expect(board.hold).toBe(0);
-	expect(board.next).toEqual([]);
 	expect(board.incomingGarbage).toEqual([]);
 	expect(board.combo).toBe(0);
 	expect(board.backToBack).toBe(0);

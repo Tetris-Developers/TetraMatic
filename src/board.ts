@@ -1,5 +1,5 @@
-import { cp } from "fs";
 import { pieceMatrices } from "./consts.json";
+import { rules } from "../config.json";
 
 enum Piece {
 	J = 1,
@@ -26,132 +26,77 @@ enum Spin {
 	Full = 2
 }
 
-function charToPiece(char: string): Piece {
-	switch (char) {
-		case "J":
-			return Piece.J;
-		case "L":
-			return Piece.L;
-		case "O":
-			return Piece.O;
-		case "S":
-			return Piece.S;
-		case "T":
-			return Piece.T;
-		case "Z":
-			return Piece.Z;
-		case "I":
-			return Piece.I;
-		case "G":
-			return Piece.Garbage;
-		default:
-			return Piece.Empty;
-	}
-}
+const charToPiece = new Map<string, Piece>([
+	["J", Piece.J],
+	["L", Piece.L],
+	["O", Piece.O],
+	["S", Piece.S],
+	["T", Piece.T],
+	["Z", Piece.Z],
+	["I", Piece.I],
+	["G", Piece.Garbage]
+]);
 
-function pieceToChar(piece: Piece): string | null {
-	switch (piece) {
-		case Piece.J:
-			return "J";
-		case Piece.L:
-			return "L";
-		case Piece.O:
-			return "O";
-		case Piece.S:
-			return "S";
-		case Piece.T:
-			return "T";
-		case Piece.Z:
-			return "Z";
-		case Piece.I:
-			return "I";
-		case Piece.Garbage:
-			return "G";
-		default:
-			return null;
-	}
-}
+const pieceToChar = new Map<Piece, string>(
+	[...charToPiece.entries()].map(([k, v]) => [v, k])
+);
 
-function charToRotation(char: string): Rotation {
-	switch (char) {
-		case "north":
-			return Rotation.North;
-		case "east":
-			return Rotation.East;
-		case "south":
-			return Rotation.South;
-		case "west":
-			return Rotation.West;
-		default:
-			return Rotation.North;
-	}
-}
+const charToRotation = new Map<string, Rotation>([
+	["north", Rotation.North],
+	["east", Rotation.East],
+	["south", Rotation.South],
+	["west", Rotation.West]
+]);
 
-function rotationToChar(rotation: Rotation): string {
-	switch (rotation) {
-		case Rotation.North:
-			return "north";
-		case Rotation.East:
-			return "east";
-		case Rotation.South:
-			return "south";
-		case Rotation.West:
-			return "west";
-	}
-}
+const rotationToChar = new Map<Rotation, string>(
+	[...charToRotation.entries()].map(([k, v]) => [v, k])
+);
 
-function charToSpin(char: string): Spin {
-	switch (char) {
-		case "none":
-			return Spin.None;
-		case "mini":
-			return Spin.Mini;
-		case "full":
-			return Spin.Full;
-		default:
-			return Spin.None;
-	}
-}
+const charToSpin: Map<string, Spin> = new Map([
+	["none", Spin.None],
+	["mini", Spin.Mini],
+	["full", Spin.Full]
+]);
 
-function spinToChar(spin: Spin): string {
-	switch (spin) {
-		case Spin.None:
-			return "none";
-		case Spin.Mini:
-			return "mini";
-		case Spin.Full:
-			return "full";
-	}
-}
+const spinToChar: Map<Spin, string> = new Map([
+	[Spin.None, "none"],
+	[Spin.Mini, "mini"],
+	[Spin.Full, "full"]
+]);
 
 export class Board {
-	private board = new Array(20)
-		.fill(0)
-		.map(() => new Array(10).fill(Piece.Empty));
+	private board: Piece[][];
 	private hold: Piece;
 	private next: Piece[] = [];
 	private incomingGarbage: number[] = [];
 	private combo = 0;
 	private backToBack = 0;
 
-	hasLost = false;
+	public hasLost = false;
 
 	constructor(
-		boardArray: Piece[][] = new Array(20)
-			.fill(0)
-			.map(() => new Array(10).fill(Piece.Empty)),
+		boardArray?: Piece[][],
 		hold: Piece = Piece.Empty,
 		next: Piece[] = [],
 		incomingGarbage: number[] = [],
 		combo: number = 0,
 		backToBack: number = 0
 	) {
-		this.board = boardArray;
+		this.board = boardArray || createEmptyBoard();
+
+		function createEmptyBoard(): Piece[][] {
+			return new Array(20)
+				.fill(null)
+				.map(() => new Array(10).fill(Piece.Empty));
+		}
+
 		this.hold = hold;
 		this.next = next;
 		this.incomingGarbage = incomingGarbage;
 		this.combo = combo;
 		this.backToBack = backToBack;
+
+		this.fillQueue(rules.nextPieces);
 	}
 
 	static fromString(string: string): Board {
@@ -183,7 +128,7 @@ export class Board {
 			}
 
 			if (char.match(/[JLOSTZIG]/)) {
-				currentRank.push(charToPiece(char));
+				currentRank.push(charToPiece.get(char) || Piece.Empty);
 				continue;
 			}
 		}
@@ -198,10 +143,14 @@ export class Board {
 			return null;
 		}
 
-		const holdPiece = charToPiece(getValue(split, "hold") || "Empty");
+		const holdPiece =
+			charToPiece.get(getValue(split, "hold") || "Empty") || Piece.Empty;
 
 		const nextPiecesStr = getValue(split, "next");
-		const nextPieces = nextPiecesStr?.split("").map(charToPiece) || [];
+		const nextPieces =
+			nextPiecesStr
+				?.split("")
+				.map(n => charToPiece.get(n) || Piece.Empty) || [];
 
 		const incomingStr = getValue(split, "incoming");
 		const incoming = incomingStr?.split(",").map(i => parseInt(i)) || [];
@@ -222,7 +171,7 @@ export class Board {
 			for (let j = 0; j < rank.length; j++) {
 				const block = rank[j];
 
-				if (block === 0) {
+				if (block === Piece.Empty) {
 					emptyBlockCount += 1;
 
 					if (emptyBlockCount === 10) {
@@ -239,7 +188,7 @@ export class Board {
 					emptyBlockCount = 0;
 				}
 
-				result += pieceToChar(block);
+				result += pieceToChar.get(block) || " ";
 			}
 
 			if (emptyBlockCount > 0) {
@@ -251,10 +200,12 @@ export class Board {
 		}
 
 		if (this.hold != Piece.Empty) {
-			result += ` hold ${pieceToChar(this.hold)}`;
+			result += ` hold ${pieceToChar.get(this.hold)}`;
 		}
 		if (this.next.length > 0) {
-			result += ` next ${this.next.map(pieceToChar).join("")}`;
+			result += ` next ${this.next
+				.map(x => pieceToChar.get(x) || " ")
+				.join("")}`;
 		}
 		if (this.incomingGarbage.length > 0) {
 			result += ` incoming ${this.incomingGarbage.join(",")}`;
@@ -269,24 +220,31 @@ export class Board {
 		return result;
 	}
 
-	push(move: Move, ignoreNext: boolean = false): boolean {
+	isLosingMove(move: Move): boolean {
 		const matrix: number[][] = pieceMatrices[move.type - 1][move.rotation];
+		const { y } = move.coords;
+		for (const mino of matrix) {
+			const [_, ay] = mino;
 
+			if (y + ay < 0) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	isLegal(move: Move): boolean {
+		const matrix: number[][] = pieceMatrices[move.type - 1][move.rotation];
 		const { x, y } = move.coords;
 
 		let willFall = true;
 
 		for (const mino of matrix) {
-			const ax = mino[0];
-			const ay = mino[1];
+			const [ax, ay] = mino;
 
 			if (x + ax < 0 || x + ax >= 10 || y + ay >= 20) {
 				return false;
-			}
-
-			if (y + ay < 0) {
-				this.hasLost = true;
-				return true;
 			}
 
 			if (this.board[y + ay][x + ax] !== 0) {
@@ -302,14 +260,28 @@ export class Board {
 			return false;
 		}
 
+		return true;
+	}
+
+	push(move: Move): boolean {
+		if (this.isLosingMove(move)) {
+			this.hasLost = true;
+			return true;
+		}
+
+		if (!this.isLegal(move)) {
+			return false;
+		}
+
+		const matrix: number[][] = pieceMatrices[move.type - 1][move.rotation];
+		const { x, y } = move.coords;
+
 		for (const mino of matrix) {
 			const [ax, ay] = mino;
 			this.board[y + ay][x + ax] = move.type;
 		}
 
-		if (!ignoreNext) {
-			this.changeNextFromMove(move);
-		}
+		this.changeNextFromMove(move);
 
 		this.clearLines();
 
@@ -427,7 +399,7 @@ export class Move {
 
 	static fromString(string: string): Move | null {
 		const REGEX =
-			/[JLOSTZI]\s+\d{1,2}\/\d{1,2}\s+(north|east|south|west)\s+(none|mini|full)/;
+			/[JLOSTZI]\s+\d{1,2}\/-?\d{1,2}\s+(north|east|south|west)\s+(none|mini|full)/;
 		if (!REGEX.test(string)) {
 			return null;
 		}
@@ -435,22 +407,22 @@ export class Move {
 		const [pieceTypeStr, coordsStr, rotationStr, spinStr] =
 			string.split(" ");
 
-		const pieceType = charToPiece(pieceTypeStr);
+		const pieceType = charToPiece.get(pieceTypeStr) || Piece.Empty;
 		const coords = {
 			x: Number(coordsStr.split("/")[0]),
 			y: Number(coordsStr.split("/")[1])
 		} as { x: number; y: number };
-		const rotation = charToRotation(rotationStr);
-		const spin = charToSpin(spinStr);
+		const rotation = charToRotation.get(rotationStr) || 0;
+		const spin = charToSpin.get(spinStr) || Spin.None;
 
 		return new Move(pieceType, coords, rotation, spin);
 	}
 
 	toString(): string {
-		const pieceType = pieceToChar(this.type);
+		const pieceType = pieceToChar.get(this.type);
 		const coords = `${this.coords.x}/${this.coords.y}`;
-		const rotation = rotationToChar(this.rotation);
-		const spin = spinToChar(this.spin);
+		const rotation = rotationToChar.get(this.rotation);
+		const spin = spinToChar.get(this.spin);
 
 		return `${pieceType} ${coords} ${rotation} ${spin}`;
 	}

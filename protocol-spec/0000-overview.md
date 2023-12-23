@@ -27,12 +27,12 @@ The typical lifecycle of a TBP bot is this.
 
 [GAME LOOP]
 
-    [BOT]: suggestion ...        # (Not required) provide a continuous suggestion for infinite analysis.
+    [BOT]: suggestion ...        # (Not required) provide a continuous suggestion for infinite analysis (ex iterative deepening).
 
     [SERVER]: play               # Allows the bot to play a move.
     [BOT]: bestmove ...          # Bot plays a move
 
-    [SERVER]: newpiece ... position ... # Gives new info to the player
+    [SERVER]: start position ... # Gives new info to the player
 
 [ROUND ENDS]
 
