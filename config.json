@@ -2,6 +2,7 @@
 	"rules": {
 		"firstTo": 7,
 		"pps": 3,
+		"nextPieces": 6,
 		"randomizer": "uniform",
 		"startingPos": "empty",
 		"rotations": "srs+",

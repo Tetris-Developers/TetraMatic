@@ -1,6 +1,9 @@
 import { rules } from "../config.json";
 
 import { Board, Move } from "./board";
+import * as console from "./logging";
+
+const debugMode = process.argv.includes("--debug");
 
 const rulesString = (() => {
 	let string = "";
@@ -25,7 +28,6 @@ export default class Player {
 		author: ""
 	};
 	private board = new Board();
-	private hasPlayed = false;
 
 	public id: string;
 	public onMove: () => void = () => {};
@@ -42,11 +44,19 @@ export default class Player {
 	}
 
 	send(msg: string) {
+		if (debugMode) {
+			console.debug(
+				`Message to ${this.id.split("-")[0]}: ${
+					msg.length > 15 ? msg.slice(0, 15) + "..." : msg
+				}`
+			);
+		}
+
 		this.ws.send(msg);
 	}
 
 	crash(msg: string) {
-		this.ws.send(`error ${msg}`);
+		this.send(`error ${msg}`);
 		this.ws.close();
 	}
 
@@ -69,48 +79,43 @@ export default class Player {
 	get hasLost() {
 		return this.board.hasLost;
 	}
+
 	sendRules() {
-		this.ws.send(`rules ${rulesString}`);
+		this.send(`rules ${rulesString}`);
+	}
+
+	resetBoard() {
+		this.board = new Board();
 	}
 
 	startCalculation() {
 		const fullPosition = this.getFullPosition();
 
-		this.ws.send(`start position ${fullPosition}`);
+		this.send(`start position ${fullPosition}`);
 		setTimeout(() => {
-			this.ws.send("play");
+			this.send("play");
 		}, 1000 / rules.pps);
 	}
 
-	async calculate(fullPosition: string) {
-		this.ws.send(`start position ${fullPosition}`);
+	illegalMoveProcedure() {
+		if (debugMode) {
+			console.debug(`Illegal move by ${this.id.split("-")[0]}`);
+		}
 
-		return async () => {
-			while (!this.hasPlayed) {
-				await new Promise(resolve => setTimeout(resolve, 10));
-			}
-
-			this.hasPlayed = false;
-
-			return true;
-		};
+		// TODO: Illegal move logic
 	}
 
 	playMove(move: Move | null) {
 		if (move === null) {
-			// TODO: Illegal move logic
+			this.illegalMoveProcedure();
 			return;
 		}
 
 		const hasPlayedSuccessfully = this.board.push(move);
 
-		// TODO: PPS Check
-
 		if (!hasPlayedSuccessfully) {
-			// TODO: Illegal move logic
+			this.illegalMoveProcedure();
 		}
-
-		this.hasPlayed = true;
 	}
 
 	command(msg: string) {
@@ -132,13 +137,13 @@ export default class Player {
 				this.onMove();
 				break;
 			case "quit":
-				this.ws.send("quit ok");
+				this.send("quit ok");
 				this.ws.close();
 				break;
 			case "crash":
 				break;
 			default:
-				this.ws.send("error invalid-command");
+				this.send("error invalid-command");
 				break;
 		}
 	}
