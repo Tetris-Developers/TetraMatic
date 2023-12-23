@@ -25,7 +25,9 @@ app.ws("/bot", (ws: WebSocket, _) => {
 
 	ws.addEventListener("message", message => {
 		if (debugMode) {
-			console.debug(`Message from: ${player.id.split("-")[0]
+			console.debug(
+				`Message from: ${
+					player.id.split("-")[0]
 				}: ${message.data.toString()}`
 			);
 		}
